@@ -1,0 +1,10 @@
+---
+- hosts: tomcat
+  become: true
+  vars:
+   - warName: addressbook-2.0.war
+   - tomcat_version: 8.5.73
+   - warRemotePath: /opt/apache-tomcat-{{ tomcat_version }}/webapps
+  tasks:
+    - name: copy the war file to Remote Server
+      copy: src=/var/lib/jenkins/workspace/AB-test-jar-create/target/{{ warName }} dest={{ warRemotePath }}/{{ warName }} owner=tomcat group=tomcat

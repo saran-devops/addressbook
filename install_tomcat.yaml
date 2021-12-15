@@ -1,0 +1,35 @@
+---
+- hosts: tomcat
+  become: true
+
+  vars:
+    - http_port: 8080
+    - tomcat_version: 8.5.73
+
+  tasks:
+    - name: To update and fetch the latest packages
+      apt: update_cache=yes state=latest force_apt_get=yes
+
+    - name: Install Openjdk
+      apt: name=openjdk-8-jdk update_cache=yes state=latest
+
+    - name: add group "tomcat"
+      group: name=tomcat
+
+    - name: add user tomcat
+      user: name=tomcat group=tomcat createhome=yes shell=/bin/bash
+      become: yes
+
+    - name: Download Tomcat
+      get_url: url=https://dlcdn.apache.org/tomcat/tomcat-8/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz dest=/opt/apache-tomcat-{{ tomcat_version }}.tar.gz
+
+    - name: Extract Tomcat archive
+      command: tar zxvf /opt/apache-tomcat-{{ tomcat_version }}.tar.gz -C /opt/ creates=/opt/apache-tomcat-{{ tomcat_version }}
+
+    - name: Change ownership of Tomcat installation
+      file: path=/opt/apache-tomcat-{{ tomcat_version }} owner=tomcat group=tomcat mode=0744 state=directory recurse=yes
+
+    - name: start the tomcat service
+      shell: nohup /opt/apache-tomcat-8.5.73/bin/startup.sh &
+      become: yes
+      become_user: tomcat
